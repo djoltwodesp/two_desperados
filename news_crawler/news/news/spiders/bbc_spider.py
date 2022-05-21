@@ -2,11 +2,13 @@ import scrapy
 import re
 from summa import keywords
 
+home_url = "https://www.bbc.com"
+
 def parse_homepage(response):
     links = response.css('a')
 
     pattern = re.compile(r'^\/.*(\d{2,})$')
-    conditions = lambda a: a and pattern.match(a) and not 'live' in a
+    conditions = lambda a: a and pattern.match(a) and not '/live/' in a and '/news/' in a
 
     article_urls = {'https://www.bbc.com'+a for a in [a.attrib['href'] for a in links] if conditions(a)}
     return article_urls
@@ -15,7 +17,9 @@ def parse_article(response):
     article = response.xpath('descendant-or-self::article')
 
     url = response.url
-    author = article.css('strong::text').get().replace('By ', '')
+    author = article.css('strong::text').get()
+    if not author:
+        author = "unknown"
     title = article.css('h1::text').get()
     article_content = parse_article_content(article)
     return url, author, title, article_content
@@ -51,21 +55,22 @@ def suma_extractor(title, content):
 class BBCSpider(scrapy.Spider):
     name = "bbc"
     start_urls = [
-        'https://www.bbc.com'
+        home_url
     ]
         
     def parse(self, response):
-        if response.css('title::text').get() == "BBC - Homepage":
+        if response.url == home_url:
             article_urls = parse_homepage(response)
             for article in article_urls:
                 yield scrapy.Request(article, callback=self.parse)
         else:
             url, author, title, content = parse_article(response)
             keywords = suma_extractor(title, content)
-            yield {
-                'article_url': url,
-                'author': author,
-                'title' : title,
-                'content' : content,
-                'keywords' : keywords
-            }
+            if content:
+                yield {
+                    'article_url': url,
+                    'author': author.replace('By ', ''),
+                    'title' : title,
+                    'content' : content,
+                    'keywords' : keywords
+                }
