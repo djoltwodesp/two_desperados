@@ -4,6 +4,7 @@ run: nvenv
 	rm articles.json
 nvenv: requirements.txt
 	python3 -m venv nvenv
+	./nvenv/bin/python3 -m pip install --upgrade pip
 	./nvenv/bin/pip install -r requirements.txt
 clean:
 	rm -rf __pycache__
