@@ -13,8 +13,7 @@ def main():
         print("Invalid number of arguments!")
         return
 
-    config.connection['user'] = args[0]
-    config.connection['password'] = args[1]
+    config.connection = (args[0], args[1])
     articles_data = load_articles()
     db.insert_articles(articles_data)
 

@@ -1,2 +1,2 @@
-article_path = "news/articles.json"
-connection = {}
+article_path = "articles.json"
+connection = ()

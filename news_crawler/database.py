@@ -4,11 +4,10 @@ import config
 def get_database():
     from pymongo import MongoClient
 
-    user, password = config.connection['user'], config.connection['password']
-
+    user, password = config.connection
     CONNECTION_STRING = f'mongodb+srv://{user}:{password}@two-desperados.uhfws.mongodb.net/?retryWrites=true&w=majority'
+    
     client = MongoClient(CONNECTION_STRING)
-
     return client['two-desperados']
 
 def insert_articles(data):

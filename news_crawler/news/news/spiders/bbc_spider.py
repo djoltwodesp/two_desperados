@@ -1,7 +1,9 @@
 import scrapy
-import re
+from scrapy.crawler import CrawlerProcess
 from summa import keywords
+import re
 
+bbc_home_url = "https://www.bbc.com"
 home_url = "https://www.bbc.com"
 
 def parse_homepage(response):
@@ -10,7 +12,7 @@ def parse_homepage(response):
     pattern = re.compile(r'^\/.*(\d{2,})$')
     conditions = lambda a: a and pattern.match(a) and not '/live/' in a and '/news/' in a
 
-    article_urls = {'https://www.bbc.com'+a for a in [a.attrib['href'] for a in links] if conditions(a)}
+    article_urls = {bbc_home_url + a for a in [a.attrib['href'] for a in links] if conditions(a)}
     return article_urls
 
 def parse_article(response):
@@ -74,3 +76,12 @@ class BBCSpider(scrapy.Spider):
                     'content' : content,
                     'keywords' : keywords
                 }
+
+process = CrawlerProcess(settings={
+    "FEEDS": {
+        "articles.json": {"format": "json"},
+    },
+})
+
+process.crawl(BBCSpider)
+process.start()
