@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import redirect, url_for
+from flask import url_for
 import database as db
 from bson.objectid import ObjectId
 
