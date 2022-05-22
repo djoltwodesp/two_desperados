@@ -10,6 +10,7 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
     return client['two-desperados']
 
+#TODO: check if article already exists
 def insert_articles(data):
     db = get_database()
     articles_col = db['articles']

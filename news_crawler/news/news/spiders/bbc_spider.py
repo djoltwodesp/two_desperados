@@ -4,7 +4,7 @@ from summa import keywords
 import re
 
 bbc_home_url = "https://www.bbc.com"
-home_url = "https://www.bbc.com"
+start_page_url = "https://www.bbc.com/news"
 
 def parse_homepage(response):
     links = response.css('a')
@@ -15,16 +15,12 @@ def parse_homepage(response):
     article_urls = {bbc_home_url + a for a in [a.attrib['href'] for a in links] if conditions(a)}
     return article_urls
 
-def parse_article(response):
-    article = response.xpath('descendant-or-self::article')
-
-    url = response.url
+def parse_article(article):
     author = article.css('strong::text').get()
     if not author:
         author = "unknown"
-    title = article.css('h1::text').get()
     article_content = parse_article_content(article)
-    return url, author, title, article_content
+    return author, article_content
 
 def parse_article_content(article):
     article_content = []
@@ -57,16 +53,21 @@ def suma_extractor(title, content):
 class BBCSpider(scrapy.Spider):
     name = "bbc"
     start_urls = [
-        home_url
+        start_page_url
     ]
         
     def parse(self, response):
-        if response.url == home_url:
+        if response.url == start_page_url:
             article_urls = parse_homepage(response)
             for article in article_urls:
                 yield scrapy.Request(article, callback=self.parse)
         else:
-            url, author, title, content = parse_article(response)
+            article = response.xpath('descendant-or-self::article')
+            title = article.css("h1::text").get()
+            if not title:
+                return
+            url = response.url
+            author, content = parse_article(article)
             keywords = suma_extractor(title, content)
             if content:
                 yield {
